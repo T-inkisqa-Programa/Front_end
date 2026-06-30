@@ -18,6 +18,11 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const router = useRouter();
+
+  const handleLogin = () => {
+    router.push('/inicio');
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <KeyboardAvoidingView 
@@ -92,7 +97,7 @@ export default function LoginScreen() {
           </View>
 
           {/* Botón Principal */}
-          <TouchableOpacity style={styles.loginButton} activeOpacity={0.8}>
+          <TouchableOpacity style={styles.loginButton} activeOpacity={0.8} onPress={handleLogin}>
             <Text style={styles.loginButtonText}>Iniciar Sesión</Text>
           </TouchableOpacity>
         </View>
