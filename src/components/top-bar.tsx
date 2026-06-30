@@ -6,7 +6,12 @@ import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
-export function TopBar() {
+interface TopBarProps {
+  showClose?: boolean;
+  onClose?: () => void;
+}
+
+export function TopBar({ showClose, onClose }: TopBarProps) {
   const theme = useTheme();
 
   return (
@@ -19,21 +24,30 @@ export function TopBar() {
         T'inkisqa
       </ThemedText>
 
-      <View style={styles.rightIcons}>
-        <Pressable style={({ pressed }) => [styles.sideBtn, pressed && { opacity: 0.7 }]}>
-          <Ionicons name="flame-outline" size={22} color={theme.text} />
+      {showClose ? (
+        <Pressable
+          style={({ pressed }) => [styles.sideBtn, pressed && { opacity: 0.7 }]}
+          onPress={onClose}
+        >
+          <Ionicons name="close" size={24} color={theme.text} />
         </Pressable>
-        <Pressable style={({ pressed }) => [styles.sideBtn, pressed && { opacity: 0.7 }]}>
-          <Ionicons name="notifications-outline" size={22} color={theme.text} />
-        </Pressable>
-        <Pressable style={({ pressed }) => [styles.sideBtn, pressed && { opacity: 0.7 }]}>
-          <Image
-            source="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=100&q=80"
-            style={styles.profilePic}
-            contentFit="cover"
-          />
-        </Pressable>
-      </View>
+      ) : (
+        <View style={styles.rightIcons}>
+          <Pressable style={({ pressed }) => [styles.sideBtn, pressed && { opacity: 0.7 }]}>
+            <Ionicons name="flame-outline" size={22} color={theme.text} />
+          </Pressable>
+          <Pressable style={({ pressed }) => [styles.sideBtn, pressed && { opacity: 0.7 }]}>
+            <Ionicons name="notifications-outline" size={22} color={theme.text} />
+          </Pressable>
+          <Pressable style={({ pressed }) => [styles.sideBtn, pressed && { opacity: 0.7 }]}>
+            <Image
+              source="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=100&q=80"
+              style={styles.profilePic}
+              contentFit="cover"
+            />
+          </Pressable>
+        </View>
+      )}
     </View>
   );
 }

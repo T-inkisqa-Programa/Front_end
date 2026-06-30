@@ -21,6 +21,14 @@ export function BottomTabBar() {
   const pathname = usePathname();
   const router = useRouter();
 
+  const subrouteMap: Record<string, string> = {
+    '/comunidad': '/foros',
+    '/nueva-comunidad': '/foros',
+    '/postular': '/voluntarios',
+    '/postulacion-exitosa': '/voluntarios',
+    '/detalle-voluntariado': '/voluntarios',
+  };
+
   return (
     <View
       style={[
@@ -29,7 +37,7 @@ export function BottomTabBar() {
       ]}
     >
       {tabs.map((tab) => {
-        const active = pathname === tab.route;
+        const active = pathname === tab.route || subrouteMap[pathname] === tab.route;
         return (
           <Pressable key={tab.name} style={styles.tab} onPress={() => router.push(tab.route)}>
             <Ionicons
