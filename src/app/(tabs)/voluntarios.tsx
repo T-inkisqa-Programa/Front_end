@@ -1,6 +1,6 @@
-import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
-import { Pressable, ScrollView, StyleSheet, View, TextInput } from 'react-native';
+import { useRouter } from 'expo-router';
+import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
@@ -47,6 +47,7 @@ const opportunities = [
 export default function VoluntariosScreen() {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
+  const router = useRouter();
 
   return (
     <ThemedView style={[styles.screen, { backgroundColor: theme.background }]}>
@@ -102,7 +103,14 @@ export default function VoluntariosScreen() {
                 <ThemedText type="smallBold" style={styles.cardTitle}>
                   {opp.title}
                 </ThemedText>
-                <Pressable>
+                <Pressable
+                  onPress={() =>
+                    router.push({
+                      pathname: '/detalle-voluntariado',
+                      params: { id: opp.id, title: opp.title, organization: opp.organization },
+                    })
+                  }
+                >
                   <ThemedText type="small" style={{ color: '#615673' }}>
                     Información →
                   </ThemedText>
@@ -132,7 +140,15 @@ export default function VoluntariosScreen() {
 
               {/* Bottom: Apply button + bookmark */}
               <View style={styles.cardBottom}>
-                <Pressable style={styles.applyBtn}>
+                <Pressable
+                  style={styles.applyBtn}
+                  onPress={() =>
+                    router.push({
+                      pathname: '/postular',
+                      params: { title: opp.title, organization: opp.organization, location: opp.location },
+                    })
+                  }
+                >
                   <ThemedText type="smallBold" style={{ color: '#FFFFFF' }}>
                     Postularme
                   </ThemedText>

@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
+import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -72,7 +72,7 @@ export default function TestimoniosScreen() {
             Crecimiento Personal
           </ThemedText>
           <ThemedText type="small" themeColor="textSecondary" style={styles.sectionDesc}>
-            Explora contenido diseñado para acompañarte en tu proceso de bienestar emocional y desarrollo personal.
+            Un santuario digital para nutrir tu bienestar, crecimiento profesional y conexión comunitaria.
           </ThemedText>
         </View>
 

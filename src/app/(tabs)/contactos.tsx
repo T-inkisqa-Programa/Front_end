@@ -1,6 +1,6 @@
-import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
-import { Pressable, ScrollView, StyleSheet, View, TextInput } from 'react-native';
+import { Image } from 'expo-image';
+import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
@@ -65,7 +65,7 @@ export default function ContactosScreen() {
             Psicólogas
           </ThemedText>
           <ThemedText type="small" themeColor="textSecondary" style={styles.pageDesc}>
-            Encuentra a la profesional ideal para acompañarte en tu bienestar emocional.
+            Encuentra apoyo profesional en un entorno seguro y empoderador diseñado para tu bienestar.
           </ThemedText>
         </View>
 
@@ -108,6 +108,9 @@ export default function ContactosScreen() {
         <View style={[styles.benefitsSection, { backgroundColor: '#F3F0FF' }]}>
           <ThemedText type="smallBold" style={styles.benefitsTitle}>
             ¿Por qué T'inkisqa?
+          </ThemedText>
+          <ThemedText type="small" themeColor="textSecondary" style={styles.pageDesc}>
+            Nuestra red de profesionales está cuidadosamente seleccionada para garantizar que recibas el apoyo más empático y capacitado.
           </ThemedText>
           <View style={styles.benefitsList}>
             {benefits.map((b) => (
