@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
+import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -9,38 +10,23 @@ import { ThemedView } from '@/components/themed-view';
 import { TopBar } from '@/components/top-bar';
 import { BottomTabInset, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-
-const communities = [
-  {
-    id: '1',
-    name: 'Adolescentes',
-    description: 'Un espacio seguro para compartir dudas, sueños y experiencias entre chicas.',
-    image: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=900&q=80',
-  },
-  {
-    id: '2',
-    name: 'Familia completa',
-    description: 'Conecta con otras mujeres que buscan armonía y bienestar en sus hogares.',
-    image: 'https://images.unsplash.com/photo-1511895426328-dc8714191300?auto=format&fit=crop&w=900&q=80',
-  },
-  {
-    id: '3',
-    name: 'Autoestima',
-    description: 'Fortalece tu amor propio y comparte herramientas para brillar desde dentro.',
-    image: 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&w=900&q=80',
-  },
-  {
-    id: '4',
-    name: 'Carreras',
-    description: 'Inspírate con historias de mujeres profesionales y construye tu camino laboral.',
-    image: 'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&w=900&q=80',
-  },
-];
+import { useAppStore } from '@/lib/app-store';
 
 export default function ForosScreen() {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
   const router = useRouter();
+  const { communities, deleteCommunity } = useAppStore();
+  const [showAll, setShowAll] = useState(false);
+  const [joined, setJoined] = useState<Record<string, boolean>>({});
+  const [featuredJoined, setFeaturedJoined] = useState(false);
+  const [menuOpen, setMenuOpen] = useState<string | null>(null);
+
+  const visibleCommunities = showAll ? communities : communities.slice(0, 4);
+
+  const toggleJoin = (comId: string) => {
+    setJoined((prev) => ({ ...prev, [comId]: !prev[comId] }));
+  };
 
   return (
     <ThemedView style={[styles.screen, { backgroundColor: theme.background }]}>
@@ -67,7 +53,7 @@ export default function ForosScreen() {
 
         {/* Groups count + Create button */}
         <ThemedText type="small" themeColor="textSecondary" style={styles.groupsText}>
-          Perteneces a: 7 grupos
+          Perteneces a: {communities.length + 1} grupos
         </ThemedText>
 
         <Pressable style={styles.createBtn} onPress={() => router.push('/nueva-comunidad')}>
@@ -82,40 +68,82 @@ export default function ForosScreen() {
           <ThemedText type="smallBold" style={styles.sectionTitle}>
             Explorar Categorías
           </ThemedText>
-          <Pressable>
+          <Pressable onPress={() => setShowAll((prev) => !prev)}>
             <ThemedText type="small" style={{ color: '#615673' }}>
-              Ver todas
+              {showAll ? 'Ver menos' : 'Ver todas'}
             </ThemedText>
           </Pressable>
         </View>
 
         {/* Community Cards */}
         <View style={styles.list}>
-          {communities.map((com) => (
-            <View key={com.id} style={styles.communityCard}>
-              <Image source={com.image} style={styles.communityImage} contentFit="cover" />
-              <View style={styles.communityBody}>
-                <ThemedText type="smallBold" style={styles.communityName}>
-                  {com.name}
-                </ThemedText>
-                <ThemedText type="small" themeColor="textSecondary" style={styles.communityDesc} numberOfLines={2}>
-                  {com.description}
-                </ThemedText>
-                <View style={styles.communityActions}>
-                  <Pressable style={styles.exploreBtn} onPress={() => router.push({ pathname: '/comunidad', params: { name: com.name } })}>
-                    <ThemedText type="smallBold" style={{ color: '#615673' }}>
-                      Explorar
+          {visibleCommunities.map((com) => {
+            const isJoined = !!joined[com.id];
+            return (
+              <View key={com.id} style={styles.communityCard}>
+                <Image source={com.image} style={styles.communityImage} contentFit="cover" />
+                <View style={styles.communityBody}>
+                  <View style={styles.communityHeaderRow}>
+                    <ThemedText type="smallBold" style={styles.communityName}>
+                      {com.name}
                     </ThemedText>
-                  </Pressable>
-                  <Pressable style={styles.joinBtn}>
-                    <ThemedText type="smallBold" style={{ color: '#FFFFFF' }}>
-                      Unirse
-                    </ThemedText>
-                  </Pressable>
+                    {com.isUserCreated && (
+                      <View style={styles.menuWrapper}>
+                        <Pressable
+                          style={styles.menuBtn}
+                          onPress={() => setMenuOpen(menuOpen === com.id ? null : com.id)}
+                        >
+                          <Ionicons name="ellipsis-horizontal" size={20} color={theme.textSecondary} />
+                        </Pressable>
+                        {menuOpen === com.id && (
+                          <View style={[styles.actionMenu, { backgroundColor: theme.background, borderColor: theme.backgroundElement }]}>
+                            <Pressable
+                              style={styles.menuItem}
+                              onPress={() => {
+                                setMenuOpen(null);
+                                router.push({ pathname: '/nueva-comunidad', params: { id: com.id } });
+                              }}
+                            >
+                              <Ionicons name="create-outline" size={18} color={theme.text} />
+                              <ThemedText type="small">Editar</ThemedText>
+                            </Pressable>
+                            <Pressable
+                              style={styles.menuItem}
+                              onPress={() => {
+                                setMenuOpen(null);
+                                deleteCommunity(com.id);
+                              }}
+                            >
+                              <Ionicons name="trash-outline" size={18} color="#FF6B6B" />
+                              <ThemedText type="small" style={{ color: '#FF6B6B' }}>Eliminar</ThemedText>
+                            </Pressable>
+                          </View>
+                        )}
+                      </View>
+                    )}
+                  </View>
+                  <ThemedText type="small" themeColor="textSecondary" style={styles.communityDesc} numberOfLines={2}>
+                    {com.description}
+                  </ThemedText>
+                  <View style={styles.communityActions}>
+                    <Pressable style={styles.exploreBtn} onPress={() => router.push({ pathname: '/comunidad', params: { name: com.name } })}>
+                      <ThemedText type="smallBold" style={{ color: '#615673' }}>
+                        Explorar
+                      </ThemedText>
+                    </Pressable>
+                    <Pressable
+                      style={[styles.joinBtn, isJoined && styles.joinedBtn]}
+                      onPress={() => toggleJoin(com.id)}
+                    >
+                      <ThemedText type="smallBold" style={{ color: isJoined ? '#615673' : '#FFFFFF' }}>
+                        {isJoined ? 'Unido ✓' : 'Unirse'}
+                      </ThemedText>
+                    </Pressable>
+                  </View>
                 </View>
               </View>
-            </View>
-          ))}
+            );
+          })}
         </View>
 
         {/* Featured Community */}
@@ -130,9 +158,12 @@ export default function ForosScreen() {
             <ThemedText type="small" style={styles.featuredDesc}>
               Un espacio donde miles de mujeres se reúnen para impulsar sus proyectos, compartir recursos y crear redes de apoyo sólidas.
             </ThemedText>
-            <Pressable style={styles.featuredBtn}>
-              <ThemedText type="smallBold" style={{ color: '#FFFFFF' }}>
-                Unirse Ahora
+            <Pressable
+              style={[styles.featuredBtn, featuredJoined && styles.joinedBtn]}
+              onPress={() => setFeaturedJoined((prev) => !prev)}
+            >
+              <ThemedText type="smallBold" style={{ color: featuredJoined ? '#615673' : '#FFFFFF' }}>
+                {featuredJoined ? 'Unido ✓' : 'Unirse Ahora'}
               </ThemedText>
             </Pressable>
           </View>
@@ -207,6 +238,40 @@ const styles = StyleSheet.create({
     padding: Spacing.three,
     gap: Spacing.two,
   },
+  communityHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  menuWrapper: {
+    position: 'relative',
+  },
+  menuBtn: {
+    padding: Spacing.half,
+  },
+  actionMenu: {
+    position: 'absolute',
+    right: 0,
+    top: 30,
+    borderRadius: 12,
+    borderWidth: 1,
+    padding: Spacing.one,
+    minWidth: 130,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
+    zIndex: 10,
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
+    paddingVertical: Spacing.two,
+    paddingHorizontal: Spacing.two,
+    borderRadius: 8,
+  },
   communityName: {
     fontSize: 16,
   },
@@ -233,6 +298,11 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     backgroundColor: '#615673',
     alignItems: 'center',
+  },
+  joinedBtn: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1.5,
+    borderColor: '#615673',
   },
   featuredCard: {
     borderRadius: 24,

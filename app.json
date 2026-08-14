@@ -34,6 +34,27 @@
             "imageWidth": 76
           }
         }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "La app accede a tus fotos para que puedas compartirlas con tu comunidad.",
+          "cameraPermission": "La app accede a tu cámara para que puedas capturar momentos para compartir.",
+          "microphonePermission": false
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "La app usa tu ubicación para que puedas etiquetar lugares cercanos en tus publicaciones."
+        }
+      ],
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "La app accede a tus fotos para que puedas compartirlas con tu comunidad.",
+          "savePhotosPermission": "La app guarda fotos que decidas descargar de la comunidad."
+        }
       ]
     ],
     "experiments": {

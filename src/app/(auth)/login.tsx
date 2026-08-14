@@ -2,6 +2,7 @@ import { FontAwesome5, Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
+  Alert,
   KeyboardAvoidingView,
   Platform,
   SafeAreaView,
@@ -20,6 +21,10 @@ export default function LoginScreen() {
   const router = useRouter();
 
   const handleLogin = () => {
+    if (!email.trim() || !password.trim()) {
+      Alert.alert('Datos incompletos', 'Ingresa tu correo y contraseña para continuar.');
+      return;
+    }
     router.push('/inicio');
   };
 
@@ -31,7 +36,7 @@ export default function LoginScreen() {
       >
         {/* Encabezado */}
         <View style={styles.headerContainer}>
-          <Text style={styles.brandName}>T'inkisqa</Text>
+          <Text style={styles.brandName}>T&apos;inkisqa</Text>
           <Text style={styles.title}>Bienvenida a tu{'\n'}comunidad</Text>
           <Text style={styles.subtitle}>
             Un espacio seguro para crecer, conectar{'\n'}y empoderarte profesionalmente.
@@ -91,7 +96,7 @@ export default function LoginScreen() {
               <Text style={styles.checkboxText}>Recordarme</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => Alert.alert('Recuperar contraseña', 'Te enviaremos un enlace de recuperación a tu correo electrónico.')}>
               <Text style={styles.forgotPassword}>¿Olvidaste tu contraseña?</Text>
             </TouchableOpacity>
           </View>
@@ -111,14 +116,23 @@ export default function LoginScreen() {
 
         {/* Redes Sociales */}
         <View style={styles.socialContainer}>
-          <TouchableOpacity style={styles.socialButton}>
+          <TouchableOpacity
+            style={styles.socialButton}
+            onPress={() => Alert.alert('Google', 'Iniciar sesión con Google estará disponible pronto.')}
+          >
             {/* Nota: Para un logo de Google multicolor exacto, es mejor usar un SVG o Imagen. Aquí usamos el ícono vector para prototipar rápido. */}
             <FontAwesome5 name="google" size={20} color="#DB4437" />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.socialButton}>
+          <TouchableOpacity
+            style={styles.socialButton}
+            onPress={() => Alert.alert('Facebook', 'Iniciar sesión con Facebook estará disponible pronto.')}
+          >
             <FontAwesome5 name="facebook" size={24} color="#1877F2" />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.socialButton}>
+          <TouchableOpacity
+            style={styles.socialButton}
+            onPress={() => Alert.alert('Apple', 'Iniciar sesión con Apple estará disponible pronto.')}
+          >
             <FontAwesome5 name="apple" size={24} color="#000000" />
           </TouchableOpacity>
         </View>

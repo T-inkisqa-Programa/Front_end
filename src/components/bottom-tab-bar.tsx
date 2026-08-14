@@ -23,10 +23,24 @@ export function BottomTabBar() {
 
   const subrouteMap: Record<string, string> = {
     '/comunidad': '/foros',
+    '/perfil': '/inicio',
     '/nueva-comunidad': '/foros',
     '/postular': '/voluntarios',
     '/postulacion-exitosa': '/voluntarios',
     '/detalle-voluntariado': '/voluntarios',
+    '/nueva-publicacion': '/inicio',
+    '/seleccionar-foto': '/inicio',
+    '/etiquetar-personas': '/inicio',
+    '/sentimientos': '/inicio',
+    '/agregar-ubicacion': '/inicio',
+    '/autocuidado': '/testimonios',
+    '/equilibrio': '/testimonios',
+    '/autoestima': '/testimonios',
+    '/crear-articulo': '/testimonios',
+    '/detalle-articulo': '/testimonios',
+    '/crear-testimonio': '/testimonios',
+    '/detalle-testimonio': '/testimonios',
+    '/detalle-psicologa': '/contactos',
   };
 
   return (

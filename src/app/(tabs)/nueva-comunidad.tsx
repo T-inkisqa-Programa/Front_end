@@ -1,14 +1,17 @@
 import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
+import { Image } from 'expo-image';
 import { Modal, Pressable, ScrollView, StyleSheet, View, TextInput } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { TopBar } from '@/components/top-bar';
 import { BottomTabInset, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { useAppStore } from '@/lib/app-store';
 
 const categories = ['Adolescentes', 'Familia completa', 'Autoestima', 'Carreras', 'Bienestar', 'Arte'];
 
@@ -16,9 +19,49 @@ export default function NuevaComunidadScreen() {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
   const router = useRouter();
-  const [selectedCategory, setSelectedCategory] = useState('');
-  const [privacy, setPrivacy] = useState<'publica' | 'privada'>('publica');
+  const { id } = useLocalSearchParams<{ id?: string }>();
+  const { communities, addCommunity, updateCommunity } = useAppStore();
+  const editing = !!id;
+  const existing = id ? communities.find((c) => c.id === id) : undefined;
+
+  const [name, setName] = useState(existing?.name ?? '');
+  const [description, setDescription] = useState(existing?.description ?? '');
+  const [selectedCategory, setSelectedCategory] = useState(existing?.category ?? '');
+  const [privacy, setPrivacy] = useState<'publica' | 'privada'>(existing?.privacy ?? 'publica');
   const [categoryOpen, setCategoryOpen] = useState(false);
+  const [coverImage, setCoverImage] = useState<string | null>(existing?.image ?? null);
+
+  const pickCover = async () => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        aspect: [16, 9],
+        quality: 0.8,
+      });
+      if (!result.canceled) {
+        setCoverImage(result.assets[0].uri);
+      }
+    } catch {
+      // Permisos denegados o galería no disponible.
+    }
+  };
+
+  const create = () => {
+    const draft = {
+      name: name.trim(),
+      description: description.trim(),
+      category: selectedCategory,
+      privacy,
+      image: coverImage ?? undefined,
+    };
+    if (editing && existing) {
+      updateCommunity(existing.id, draft);
+    } else {
+      addCommunity(draft);
+    }
+    router.back();
+  };
 
   return (
     <ThemedView style={[styles.screen, { backgroundColor: theme.background }]}>
@@ -36,7 +79,7 @@ export default function NuevaComunidadScreen() {
         {/* Title */}
         <View style={styles.titleSection}>
           <ThemedText type="title" style={styles.pageTitle}>
-            Nueva Comunidad
+            {editing ? 'Editar Comunidad' : 'Nueva Comunidad'}
           </ThemedText>
           <ThemedText type="small" themeColor="textSecondary" style={styles.pageDesc}>
             Crea un espacio seguro para que más mujeres puedan conectar, aprender y crecer juntas.
@@ -44,12 +87,19 @@ export default function NuevaComunidadScreen() {
         </View>
 
         {/* Cover Image Upload */}
-        <View style={[styles.uploadBox, { borderColor: theme.textSecondary }]}>
-          <Ionicons name="camera-outline" size={32} color={theme.textSecondary} />
+        <Pressable
+          style={[styles.uploadBox, { borderColor: theme.textSecondary }]}
+          onPress={pickCover}
+        >
+          {coverImage ? (
+            <Image source={coverImage} style={styles.coverPreview} contentFit="cover" />
+          ) : (
+            <Ionicons name="camera-outline" size={32} color={theme.textSecondary} />
+          )}
           <ThemedText type="small" themeColor="textSecondary" style={styles.uploadText}>
-            Subir imagen sugerida
+            {coverImage ? 'Imagen seleccionada ✓ (toca para cambiar)' : 'Subir imagen sugerida'}
           </ThemedText>
-        </View>
+        </Pressable>
 
         {/* Community Name */}
         <View style={styles.fieldGroup}>
@@ -60,6 +110,8 @@ export default function NuevaComunidadScreen() {
             <TextInput
               placeholder="Ej: Mujeres en Acción"
               placeholderTextColor={theme.textSecondary}
+              value={name}
+              onChangeText={setName}
               style={[styles.input, { color: theme.text }]}
             />
           </View>
@@ -90,6 +142,8 @@ export default function NuevaComunidadScreen() {
             <TextInput
               placeholder="Describe el propósito de tu comunidad..."
               placeholderTextColor={theme.textSecondary}
+              value={description}
+              onChangeText={setDescription}
               multiline
               numberOfLines={4}
               textAlignVertical="top"
@@ -156,16 +210,16 @@ export default function NuevaComunidadScreen() {
         </View>
 
         {/* Create Button */}
-        <Pressable style={styles.createBtn}>
+        <Pressable style={styles.createBtn} onPress={create}>
           <ThemedText type="smallBold" style={{ color: '#FFFFFF' }}>
-            Crear Comunidad
+            {editing ? 'Guardar Cambios' : 'Crear Comunidad'}
           </ThemedText>
           <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
         </Pressable>
 
         {/* Footer note */}
         <ThemedText type="small" themeColor="textSecondary" style={styles.footerNote}>
-          Al crear una comunidad aceptas las Guías de Convivencia y Seguridad de T'inkisqa.
+          Al crear una comunidad aceptas las Guías de Convivencia y Seguridad de T&apos;inkisqa.
         </ThemedText>
       </ScrollView>
 
@@ -234,6 +288,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     gap: Spacing.two,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  coverPreview: {
+    width: '100%',
+    height: '100%',
   },
   uploadText: {
     fontSize: 14,

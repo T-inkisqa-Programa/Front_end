@@ -9,56 +9,39 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { BottomTabInset, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { useAppStore } from '@/lib/app-store';
 
 const filterTabs = ['Populares', 'Recientes', 'Mis Ideas'];
-
-const posts = [
-  {
-    id: '1',
-    author: 'Valeria M.',
-    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=100&q=80',
-    date: 'Hace 2 horas',
-    tag: 'Idea Compartida',
-    content: 'Hoy en la escuela una compañera me dijo que le gustaría aprender más sobre cómo manejar el estrés antes de los exámenes. ¿A alguien más le pasa? Me encantaría que compartamos tips 💪',
-    isQuote: false,
-    likes: 24,
-    comments: 7,
-    saved: false,
-  },
-  {
-    id: '2',
-    author: 'Camila R.',
-    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=100&q=80',
-    date: 'Hace 1 día',
-    tag: '',
-    content: '"No tienes que ser perfecta para ser increíble. Cada pequeño paso que das hacia tus sueños ya te hace más fuerte de lo que imaginas." ✨',
-    isQuote: true,
-    likes: 56,
-    comments: 12,
-    saved: true,
-  },
-  {
-    id: '3',
-    author: 'Sofía G.',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80',
-    date: 'Hace 3 días',
-    tag: 'Idea Compartida',
-    content: 'Ayer me animé a hablar en la clase sobre mi proyecto de ciencia y recibí mucho apoyo. Si están dudando en alzar la voz, háganlo. Su opinión importa 💜',
-    isQuote: false,
-    likes: 42,
-    comments: 9,
-    saved: false,
-  },
-];
 
 export default function ComunidadScreen() {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
   const router = useRouter();
   const { name } = useLocalSearchParams<{ name: string }>();
+  const { posts, deletePost, togglePostLike, unlikePost, togglePostSave } = useAppStore();
   const [activeFilter, setActiveFilter] = useState('Populares');
+  const [liked, setLiked] = useState<Record<string, boolean>>({});
+  const [menuOpen, setMenuOpen] = useState<string | null>(null);
+
+  const toggleLike = (postId: string) => {
+    const next = !liked[postId];
+    setLiked((prev) => ({ ...prev, [postId]: next }));
+    if (next) {
+      togglePostLike(postId);
+    } else {
+      unlikePost(postId);
+    }
+  };
 
   const communityName = name || 'Adolescentes';
+
+  const visiblePosts = [...posts]
+    .sort((a, b) => {
+      if (activeFilter === 'Populares') return b.likes - a.likes;
+      if (activeFilter === 'Recientes') return a.minutesAgo - b.minutesAgo;
+      return 0;
+    })
+    .filter((p) => activeFilter !== 'Mis Ideas' || p.isMine);
 
   return (
     <ThemedView style={[styles.screen, { backgroundColor: theme.background }]}>
@@ -114,72 +97,114 @@ export default function ComunidadScreen() {
 
         {/* Posts */}
         <View style={styles.postList}>
-          {posts.map((post) => (
-            <View key={post.id} style={styles.postCard}>
-              {/* Post Header */}
-              <View style={styles.postHeader}>
-                <Image source={post.avatar} style={styles.postAvatar} contentFit="cover" />
-                <View style={styles.postHeaderInfo}>
-                  <View style={styles.postHeaderTop}>
-                    <ThemedText type="smallBold">{post.author}</ThemedText>
-                    {post.tag ? (
-                      <View style={styles.tagBadge}>
-                        <ThemedText type="small" style={{ color: '#615673', fontSize: 11 }}>
-                          {post.tag}
-                        </ThemedText>
-                      </View>
-                    ) : null}
+          {visiblePosts.map((post) => {
+            const isLiked = !!liked[post.id];
+            const isSaved = post.saved;
+            return (
+              <View key={post.id} style={styles.postCard}>
+                {/* Post Header */}
+                <View style={styles.postHeader}>
+                  <Image source={post.avatar} style={styles.postAvatar} contentFit="cover" />
+                  <View style={styles.postHeaderInfo}>
+                    <View style={styles.postHeaderTop}>
+                      <ThemedText type="smallBold">{post.author}</ThemedText>
+                      {post.tag ? (
+                        <View style={styles.tagBadge}>
+                          <ThemedText type="small" style={{ color: '#615673', fontSize: 11 }}>
+                            {post.tag}
+                          </ThemedText>
+                        </View>
+                      ) : null}
+                    </View>
+                    <ThemedText type="small" themeColor="textSecondary">
+                      {post.date}
+                    </ThemedText>
                   </View>
-                  <ThemedText type="small" themeColor="textSecondary">
-                    {post.date}
-                  </ThemedText>
+                  {post.isMine && (
+                    <View style={styles.menuWrapper}>
+                      <Pressable
+                        style={styles.menuBtn}
+                        onPress={() => setMenuOpen(menuOpen === post.id ? null : post.id)}
+                      >
+                        <Ionicons name="ellipsis-horizontal" size={20} color={theme.textSecondary} />
+                      </Pressable>
+                      {menuOpen === post.id && (
+                        <View style={[styles.actionMenu, { backgroundColor: theme.background, borderColor: theme.backgroundElement }]}>
+                          <Pressable
+                            style={styles.menuItem}
+                            onPress={() => {
+                              setMenuOpen(null);
+                              router.push({ pathname: '/nueva-publicacion', params: { id: post.id } });
+                            }}
+                          >
+                            <Ionicons name="create-outline" size={18} color={theme.text} />
+                            <ThemedText type="small">Editar</ThemedText>
+                          </Pressable>
+                          <Pressable
+                            style={styles.menuItem}
+                            onPress={() => {
+                              setMenuOpen(null);
+                              deletePost(post.id);
+                            }}
+                          >
+                            <Ionicons name="trash-outline" size={18} color="#FF6B6B" />
+                            <ThemedText type="small" style={{ color: '#FF6B6B' }}>Eliminar</ThemedText>
+                          </Pressable>
+                        </View>
+                      )}
+                    </View>
+                  )}
                 </View>
-              </View>
 
-              {/* Post Content */}
-              {post.isQuote ? (
-                <View style={[styles.quoteBox, { backgroundColor: theme.backgroundElement }]}>
-                  <ThemedText style={styles.quoteText}>
+                {/* Post Content */}
+                {post.isQuote ? (
+                  <View style={[styles.quoteBox, { backgroundColor: theme.backgroundElement }]}>
+                    <ThemedText style={styles.quoteText}>
+                      {post.content}
+                    </ThemedText>
+                  </View>
+                ) : (
+                  <ThemedText style={styles.postContent}>
                     {post.content}
                   </ThemedText>
-                </View>
-              ) : (
-                <ThemedText style={styles.postContent}>
-                  {post.content}
-                </ThemedText>
-              )}
+                )}
 
-              {/* Post Actions */}
-              <View style={styles.postActions}>
-                <View style={styles.postActionsLeft}>
-                  <View style={styles.actionItem}>
-                    <Ionicons name="heart-outline" size={18} color={theme.textSecondary} />
-                    <ThemedText type="small" themeColor="textSecondary">
-                      {post.likes}
-                    </ThemedText>
+                {/* Post Actions */}
+                <View style={styles.postActions}>
+                  <View style={styles.postActionsLeft}>
+                    <Pressable style={styles.actionItem} onPress={() => toggleLike(post.id)}>
+                      <Ionicons
+                        name={isLiked ? 'heart' : 'heart-outline'}
+                        size={18}
+                        color={isLiked ? '#FF6B8A' : theme.textSecondary}
+                      />
+                      <ThemedText type="small" style={isLiked ? { color: '#FF6B8A' } : undefined}>
+                        {post.likes}
+                      </ThemedText>
+                    </Pressable>
+                    <View style={styles.actionItem}>
+                      <Ionicons name="chatbubble-outline" size={18} color={theme.textSecondary} />
+                      <ThemedText type="small" themeColor="textSecondary">
+                        {post.comments}
+                      </ThemedText>
+                    </View>
                   </View>
-                  <View style={styles.actionItem}>
-                    <Ionicons name="chatbubble-outline" size={18} color={theme.textSecondary} />
-                    <ThemedText type="small" themeColor="textSecondary">
-                      {post.comments}
-                    </ThemedText>
-                  </View>
+                  <Pressable onPress={() => togglePostSave(post.id)}>
+                    <Ionicons
+                      name={isSaved ? 'bookmark' : 'bookmark-outline'}
+                      size={20}
+                      color={isSaved ? '#615673' : theme.textSecondary}
+                    />
+                  </Pressable>
                 </View>
-                <Pressable>
-                  <Ionicons
-                    name={post.saved ? 'bookmark' : 'bookmark-outline'}
-                    size={20}
-                    color={post.saved ? '#615673' : theme.textSecondary}
-                  />
-                </Pressable>
               </View>
-            </View>
-          ))}
+            );
+          })}
         </View>
       </ScrollView>
 
       {/* FAB */}
-      <Pressable style={styles.fab}>
+      <Pressable style={styles.fab} onPress={() => router.push('/nueva-publicacion')}>
         <Ionicons name="pencil" size={24} color="#FFFFFF" />
       </Pressable>
     </ThemedView>
@@ -266,6 +291,35 @@ const styles = StyleSheet.create({
   postHeaderInfo: {
     flex: 1,
     gap: 2,
+  },
+  menuWrapper: {
+    position: 'relative',
+  },
+  menuBtn: {
+    padding: Spacing.half,
+  },
+  actionMenu: {
+    position: 'absolute',
+    right: 0,
+    top: 28,
+    borderRadius: 12,
+    borderWidth: 1,
+    padding: Spacing.one,
+    minWidth: 130,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
+    zIndex: 10,
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
+    paddingVertical: Spacing.two,
+    paddingHorizontal: Spacing.two,
+    borderRadius: 8,
   },
   postHeaderTop: {
     flexDirection: 'row',

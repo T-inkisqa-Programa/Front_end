@@ -1,5 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
+import { useRouter } from 'expo-router';
+import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -8,33 +10,9 @@ import { ThemedView } from '@/components/themed-view';
 import { TopBar } from '@/components/top-bar';
 import { BottomTabInset, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { psicologas } from '@/lib/psicologas';
 
-const psychologists = [
-  {
-    id: '1',
-    name: 'María Fernanda López',
-    specialty: 'Terapia Cognitivo-Conductual',
-    photo: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=200&q=80',
-  },
-  {
-    id: '2',
-    name: 'Ana Lucía Castillo',
-    specialty: 'Psicología Humanista',
-    photo: 'https://images.unsplash.com/photo-1594824476967-48c8b964273f?auto=format&fit=crop&w=200&q=80',
-  },
-  {
-    id: '3',
-    name: 'Valeria Mendoza Rivas',
-    specialty: 'Terapia Familiar y de Pareja',
-    photo: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80',
-  },
-  {
-    id: '4',
-    name: 'Carolina Jiménez Vega',
-    specialty: 'Psicología Infantil',
-    photo: 'https://images.unsplash.com/photo-1489424731084-a5d8b219a5bb?auto=format&fit=crop&w=200&q=80',
-  },
-];
+const specialties = [...new Set(psicologas.map((p) => p.specialty))];
 
 const benefits = [
   { icon: 'shield-checkmark', text: 'Profesionales verificadas' },
@@ -45,6 +23,28 @@ const benefits = [
 export default function ContactosScreen() {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
+  const router = useRouter();
+  const [query, setQuery] = useState('');
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [activeFilters, setActiveFilters] = useState<string[]>([]);
+
+  const toggleFilter = (specialty: string) => {
+    setActiveFilters((prev) =>
+      prev.includes(specialty) ? prev.filter((s) => s !== specialty) : [...prev, specialty]
+    );
+  };
+
+  const visiblePsychologists = psicologas.filter((psy) => {
+    const normalizedQuery = query.trim().toLowerCase();
+    const matchesQuery =
+      normalizedQuery === '' ||
+      psy.name.toLowerCase().includes(normalizedQuery) ||
+      psy.specialty.toLowerCase().includes(normalizedQuery) ||
+      psy.approach.toLowerCase().includes(normalizedQuery);
+    const matchesFilter =
+      activeFilters.length === 0 || activeFilters.includes(psy.specialty);
+    return matchesQuery && matchesFilter;
+  });
 
   return (
     <ThemedView style={[styles.screen, { backgroundColor: theme.background }]}>
@@ -76,38 +76,99 @@ export default function ContactosScreen() {
             <TextInput
               placeholder="Buscar por nombre o especialidad..."
               placeholderTextColor={theme.textSecondary}
+              value={query}
+              onChangeText={setQuery}
               style={[styles.searchInput, { color: theme.text }]}
             />
+            {query.length > 0 && (
+              <Pressable onPress={() => setQuery('')}>
+                <Ionicons name="close-circle" size={20} color={theme.textSecondary} />
+              </Pressable>
+            )}
           </View>
-          <Pressable style={[styles.filterBtn, { backgroundColor: '#615673' }]}>
+          <Pressable
+            style={[styles.filterBtn, { backgroundColor: '#615673' }]}
+            onPress={() => setFilterOpen((prev) => !prev)}
+          >
             <Ionicons name="options-outline" size={22} color="#FFFFFF" />
           </Pressable>
         </View>
 
-        {/* Psychologist Grid */}
-        <View style={styles.grid}>
-          {psychologists.map((psy) => (
-            <View key={psy.id} style={[styles.psyCard, { backgroundColor: theme.backgroundElement }]}>
-              <Image source={psy.photo} style={styles.psyPhoto} contentFit="cover" />
-              <ThemedText type="smallBold" style={styles.psyName} numberOfLines={2}>
-                {psy.name}
-              </ThemedText>
-              <ThemedText type="small" themeColor="textSecondary" style={styles.psySpecialty} numberOfLines={2}>
-                {psy.specialty}
-              </ThemedText>
-              <Pressable style={[styles.profileBtn, { backgroundColor: '#F5F0FF' }]}>
-                <ThemedText type="smallBold" style={{ color: '#615673' }}>
-                  Perfil
+        {/* Filter panel */}
+        {filterOpen && (
+          <View style={[styles.filterPanel, { backgroundColor: theme.backgroundElement }]}>
+            <ThemedText type="smallBold" style={styles.filterPanelTitle}>
+              Filtrar por especialidad
+            </ThemedText>
+            <View style={styles.filterChips}>
+              {specialties.map((specialty) => {
+                const active = activeFilters.includes(specialty);
+                return (
+                  <Pressable
+                    key={specialty}
+                    style={[styles.filterChip, active && styles.filterChipActive]}
+                    onPress={() => toggleFilter(specialty)}
+                  >
+                    <ThemedText
+                      type="small"
+                      style={[styles.filterChipText, active && { color: '#FFFFFF' }]}
+                    >
+                      {specialty}
+                    </ThemedText>
+                  </Pressable>
+                );
+              })}
+            </View>
+            {activeFilters.length > 0 && (
+              <Pressable onPress={() => setActiveFilters([])}>
+                <ThemedText type="small" style={{ color: '#615673' }}>
+                  Limpiar filtros
                 </ThemedText>
               </Pressable>
+            )}
+          </View>
+        )}
+
+        {/* Psychologist Grid */}
+        <View style={styles.grid}>
+          {visiblePsychologists.length === 0 ? (
+            <View style={styles.emptyState}>
+              <Ionicons name="search-outline" size={40} color={theme.textSecondary} />
+              <ThemedText type="small" themeColor="textSecondary" style={styles.emptyText}>
+                No encontramos profesionales para tu búsqueda.
+              </ThemedText>
             </View>
-          ))}
+          ) : (
+            visiblePsychologists.map((psy) => (
+              <View key={psy.id} style={[styles.psyCard, { backgroundColor: theme.backgroundElement }]}>
+                <Image source={psy.photo} style={styles.psyPhoto} contentFit="cover" />
+                <ThemedText type="smallBold" style={styles.psyName} numberOfLines={2}>
+                  {psy.name}
+                </ThemedText>
+                <ThemedText type="small" themeColor="textSecondary" style={styles.psySpecialty} numberOfLines={2}>
+                  {psy.specialty}
+                </ThemedText>
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.profileBtn,
+                    { backgroundColor: '#F5F0FF' },
+                    pressed && styles.profileBtnPressed,
+                  ]}
+                  onPress={() => router.push({ pathname: '/detalle-psicologa', params: { id: psy.id } })}
+                >
+                  <ThemedText type="smallBold" style={{ color: '#615673' }}>
+                    Perfil
+                  </ThemedText>
+                </Pressable>
+              </View>
+            ))
+          )}
         </View>
 
         {/* Why T'inkisqa */}
         <View style={[styles.benefitsSection, { backgroundColor: '#F3F0FF' }]}>
           <ThemedText type="smallBold" style={styles.benefitsTitle}>
-            ¿Por qué T'inkisqa?
+            ¿Por qué T&apos;inkisqa?
           </ThemedText>
           <ThemedText type="small" themeColor="textSecondary" style={styles.pageDesc}>
             Nuestra red de profesionales está cuidadosamente seleccionada para garantizar que recibas el apoyo más empático y capacitado.
@@ -173,6 +234,40 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  filterPanel: {
+    borderRadius: 20,
+    padding: Spacing.three,
+    gap: Spacing.two,
+  },
+  filterPanelTitle: {
+    fontSize: 14,
+  },
+  filterChips: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.two,
+  },
+  filterChip: {
+    paddingHorizontal: Spacing.three,
+    paddingVertical: Spacing.two,
+    borderRadius: 999,
+    backgroundColor: '#F0F0F3',
+  },
+  filterChipActive: {
+    backgroundColor: '#615673',
+  },
+  filterChipText: {
+    color: '#60646C',
+  },
+  emptyState: {
+    width: '100%',
+    alignItems: 'center',
+    gap: Spacing.two,
+    paddingVertical: Spacing.five,
+  },
+  emptyText: {
+    textAlign: 'center',
+  },
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -208,6 +303,9 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.two,
     borderRadius: 999,
     alignItems: 'center',
+  },
+  profileBtnPressed: {
+    opacity: 0.8,
   },
   benefitsSection: {
     borderRadius: 24,

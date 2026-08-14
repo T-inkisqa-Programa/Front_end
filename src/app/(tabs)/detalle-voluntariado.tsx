@@ -69,7 +69,7 @@ export default function DetalleVoluntariadoScreen() {
         style={styles.scrollView}
         contentContainerStyle={[
           styles.content,
-          { paddingBottom: BottomTabInset + 32 },
+          { paddingBottom: BottomTabInset + 120 },
         ]}
         showsVerticalScrollIndicator={false}
       >
@@ -184,6 +184,28 @@ export default function DetalleVoluntariadoScreen() {
           </View>
         </View>
       </ScrollView>
+
+      {/* Apply CTA */}
+      <View style={[styles.footer, { paddingBottom: BottomTabInset + 16, backgroundColor: theme.background }]}>
+        <Pressable
+          style={({ pressed }) => [styles.applyBtn, pressed && styles.applyBtnPressed]}
+          onPress={() =>
+            router.push({
+              pathname: '/postular',
+              params: {
+                title: title || 'Acompañamiento a adultos mayores',
+                organization: organization || 'Fundación Alegría de Vivir',
+                location: 'Presencial · Cercado de Lima',
+              },
+            })
+          }
+        >
+          <Ionicons name="hand-left-outline" size={20} color="#FFFFFF" />
+          <ThemedText type="smallBold" style={styles.applyText}>
+            Postularme
+          </ThemedText>
+        </Pressable>
+      </View>
     </ThemedView>
   );
 }
@@ -322,5 +344,29 @@ const styles = StyleSheet.create({
   reqText: {
     flex: 1,
     lineHeight: 20,
+  },
+  footer: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    paddingHorizontal: Spacing.four,
+    paddingTop: Spacing.two,
+  },
+  applyBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.two,
+    backgroundColor: '#615673',
+    borderRadius: 999,
+    paddingVertical: Spacing.three + 2,
+  },
+  applyBtnPressed: {
+    opacity: 0.85,
+  },
+  applyText: {
+    color: '#FFFFFF',
+    fontSize: 15,
   },
 });

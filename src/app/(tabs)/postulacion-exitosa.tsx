@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -13,6 +14,7 @@ export default function PostulacionExitosaScreen() {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
   const router = useRouter();
+  const [fav, setFav] = useState(false);
 
   return (
     <ThemedView style={[styles.screen, { backgroundColor: theme.background }]}>
@@ -29,8 +31,12 @@ export default function PostulacionExitosaScreen() {
 
         {/* Favorite button */}
         <View style={styles.favRow}>
-          <Pressable style={styles.favBtn}>
-            <Ionicons name="heart-outline" size={24} color="#615673" />
+          <Pressable style={styles.favBtn} onPress={() => setFav((prev) => !prev)}>
+            <Ionicons
+              name={fav ? 'heart' : 'heart-outline'}
+              size={24}
+              color={fav ? '#FF6B8A' : '#615673'}
+            />
           </Pressable>
         </View>
 
@@ -48,7 +54,7 @@ export default function PostulacionExitosaScreen() {
             ¡Postulación Enviada!
           </ThemedText>
           <ThemedText type="small" style={styles.successMsg}>
-            Tu postulación fue recibida correctamente. El equipo de T'inkisqa revisará tu perfil y se comunicará contigo en caso de avanzar a la siguiente etapa.
+            Tu postulación fue recibida correctamente. El equipo de T&apos;inkisqa revisará tu perfil y se comunicará contigo en caso de avanzar a la siguiente etapa.
           </ThemedText>
         </View>
 

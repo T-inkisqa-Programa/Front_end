@@ -29,6 +29,7 @@ export default function PostularScreen() {
 
   const [availabilityOpen, setAvailabilityOpen] = useState(false);
   const [selectedAvailability, setSelectedAvailability] = useState('');
+  const [cvAttached, setCvAttached] = useState(false);
 
   return (
     <ThemedView style={[styles.screen, { backgroundColor: theme.background }]}>
@@ -145,12 +146,19 @@ export default function PostularScreen() {
           <ThemedText type="smallBold" style={styles.fieldLabel}>
             Adjuntar CV o Perfil
           </ThemedText>
-          <View style={[styles.uploadBox, { borderColor: theme.textSecondary }]}>
-            <Ionicons name="document-outline" size={36} color={theme.textSecondary} />
+          <Pressable
+            style={[styles.uploadBox, { borderColor: theme.textSecondary }]}
+            onPress={() => setCvAttached((prev) => !prev)}
+          >
+            <Ionicons
+              name={cvAttached ? 'checkmark-circle' : 'document-outline'}
+              size={36}
+              color={cvAttached ? '#4CAF50' : theme.textSecondary}
+            />
             <ThemedText type="small" themeColor="textSecondary" style={styles.uploadText}>
-              Subir documento (PDF, DOC)
+              {cvAttached ? 'CV adjuntado ✓ (toca para quitar)' : 'Subir documento (PDF, DOC)'}
             </ThemedText>
-          </View>
+          </Pressable>
         </View>
 
         {/* Info note */}

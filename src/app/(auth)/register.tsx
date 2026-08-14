@@ -2,6 +2,7 @@ import { FontAwesome5, Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
+  Alert,
   KeyboardAvoidingView,
   Platform,
   SafeAreaView,
@@ -21,6 +22,26 @@ export default function RegisterScreen() {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const router = useRouter();
 
+  const handleRegister = () => {
+    if (!fullName.trim() || !email.trim() || !password.trim()) {
+      Alert.alert('Datos incompletos', 'Completa todos los campos para crear tu cuenta.');
+      return;
+    }
+    if (password !== confirmPassword) {
+      Alert.alert('Contraseñas no coinciden', 'Revisa que ambas contraseñas sean iguales.');
+      return;
+    }
+    if (!acceptedTerms) {
+      Alert.alert('Acepta los términos', 'Debes aceptar los términos y políticas de privacidad.');
+      return;
+    }
+    router.push('/inicio');
+  };
+
+  const socialSoon = (network: string) => {
+    Alert.alert('Próximamente', `El registro con ${network} estará disponible pronto.`);
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <KeyboardAvoidingView 
@@ -33,7 +54,7 @@ export default function RegisterScreen() {
         >
           {/* Encabezado */}
           <View style={styles.headerContainer}>
-            <Text style={styles.brandName}>T'inkisqa</Text>
+            <Text style={styles.brandName}>T&apos;inkisqa</Text>
             <Text style={styles.title}>Crea tu cuenta</Text>
             <Text style={styles.subtitle}>
               Únete a nuestra comunidad de{'\n'}apoyo y crecimiento.
@@ -111,7 +132,7 @@ export default function RegisterScreen() {
             <TouchableOpacity 
               style={[styles.registerButton, !acceptedTerms && styles.buttonDisabled]} 
               activeOpacity={0.8}
-              disabled={!acceptedTerms}
+              onPress={handleRegister}
             >
               <Text style={styles.registerButtonText}>Registrarse</Text>
             </TouchableOpacity>
@@ -126,13 +147,13 @@ export default function RegisterScreen() {
 
           {/* Redes Sociales */}
           <View style={styles.socialContainer}>
-            <TouchableOpacity style={styles.socialButton}>
+            <TouchableOpacity style={styles.socialButton} onPress={() => socialSoon('Google')}>
               <FontAwesome5 name="google" size={20} color="#DB4437" />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.socialButton}>
+            <TouchableOpacity style={styles.socialButton} onPress={() => socialSoon('Facebook')}>
               <FontAwesome5 name="facebook" size={24} color="#1877F2" />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.socialButton}>
+            <TouchableOpacity style={styles.socialButton} onPress={() => socialSoon('Apple')}>
               <FontAwesome5 name="apple" size={24} color="#000000" />
             </TouchableOpacity>
           </View>
