@@ -1,8 +1,8 @@
 import { Stack, usePathname } from 'expo-router';
 
-import { BottomTabBar } from '@/components/bottom-tab-bar';
+import { BottomTabBar } from '@/shared/ui/bottom-tab-bar';
 
-const tabRoutes = ['/inicio', '/testimonios', '/contactos', '/foros', '/voluntarios', '/comunidad', '/perfil', '/postular', '/postulacion-exitosa', '/detalle-voluntariado', '/nueva-publicacion', '/seleccionar-foto', '/etiquetar-personas', '/sentimientos', '/agregar-ubicacion', '/autocuidado', '/equilibrio', '/autoestima', '/crear-articulo', '/detalle-articulo', '/crear-testimonio', '/detalle-testimonio', '/detalle-psicologa'];
+const tabRoutes = ['/inicio', '/testimonios', '/contactos', '/foros', '/voluntarios', '/comunidad', '/perfil', '/postular', '/postulacion-exitosa', '/detalle-voluntariado', '/nueva-publicacion', '/seleccionar-foto', '/etiquetar-personas', '/sentimientos', '/agregar-ubicacion', '/autocuidado', '/equilibrio', '/autoestima', '/crear-articulo', '/detalle-articulo', '/crear-testimonio', '/detalle-testimonio', '/detalle-psicologa', '/racha'];
 
 export default function TabsLayout() {
   const pathname = usePathname();
@@ -35,6 +35,7 @@ export default function TabsLayout() {
         <Stack.Screen name="crear-testimonio" />
         <Stack.Screen name="detalle-testimonio" />
         <Stack.Screen name="detalle-psicologa" />
+        <Stack.Screen name="racha" />
       </Stack>
       {showTabs && <BottomTabBar />}
     </>

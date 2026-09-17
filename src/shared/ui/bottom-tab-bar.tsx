@@ -1,0 +1,94 @@
+import { Ionicons } from '@expo/vector-icons';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { usePathname, useRouter } from 'expo-router';
+
+import { ThemedText } from '@/shared/ui/themed-text';
+import { BottomTabInset, Spacing } from '@/shared/theme/theme';
+import { useTheme } from '@/shared/hooks/use-theme';
+
+type IoniconName = React.ComponentProps<typeof Ionicons>['name'];
+
+const tabs: { name: string; icon: IoniconName; route: '/' | '/inicio' | '/testimonios' | '/contactos' | '/foros' | '/voluntarios' }[] = [
+  { name: 'Inicio', icon: 'home', route: '/inicio' },
+  { name: 'Testimonios', icon: 'chatbubble-ellipses', route: '/testimonios' },
+  { name: 'Contactos', icon: 'people', route: '/contactos' },
+  { name: 'Foros', icon: 'chatbox', route: '/foros' },
+  { name: 'Voluntarios', icon: 'heart', route: '/voluntarios' },
+];
+
+export function BottomTabBar() {
+  const theme = useTheme();
+  const pathname = usePathname();
+  const router = useRouter();
+
+  const subrouteMap: Record<string, string> = {
+    '/comunidad': '/foros',
+    '/perfil': '/inicio',
+    '/nueva-comunidad': '/foros',
+    '/postular': '/voluntarios',
+    '/postulacion-exitosa': '/voluntarios',
+    '/detalle-voluntariado': '/voluntarios',
+    '/nueva-publicacion': '/inicio',
+    '/seleccionar-foto': '/inicio',
+    '/etiquetar-personas': '/inicio',
+    '/sentimientos': '/inicio',
+    '/agregar-ubicacion': '/inicio',
+    '/autocuidado': '/testimonios',
+    '/equilibrio': '/testimonios',
+    '/autoestima': '/testimonios',
+    '/crear-articulo': '/testimonios',
+    '/detalle-articulo': '/testimonios',
+    '/crear-testimonio': '/testimonios',
+    '/detalle-testimonio': '/testimonios',
+    '/detalle-psicologa': '/contactos',
+  };
+
+  return (
+    <View
+      style={[
+        styles.bar,
+        { backgroundColor: theme.background, borderTopColor: theme.backgroundElement },
+      ]}
+    >
+      {tabs.map((tab) => {
+        const active = pathname === tab.route || subrouteMap[pathname] === tab.route;
+        return (
+          <Pressable key={tab.name} style={styles.tab} onPress={() => router.push(tab.route)}>
+            <Ionicons
+              name={active ? tab.icon : (`${tab.icon}-outline` as IoniconName)}
+              size={24}
+              color={active ? '#615673' : theme.textSecondary}
+            />
+            <ThemedText
+              type="small"
+              style={[styles.label, active && { color: '#615673' }]}
+            >
+              {tab.name}
+            </ThemedText>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  bar: {
+    flexDirection: 'row',
+    paddingTop: Spacing.two,
+    paddingBottom: BottomTabInset,
+    borderTopWidth: 1,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+  },
+  tab: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 2,
+    paddingVertical: Spacing.one,
+  },
+  label: {
+    color: '#60646C',
+  },
+});
